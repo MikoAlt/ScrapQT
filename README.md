@@ -12,8 +12,9 @@ An extensible E-Commerce Web Scraper UI written in Python and QT5.
 - [ ] popup buat nampilin detail
 - [ ] histogram, mean, modus, median dari kategori pake matplotlib
 - [ ] fitur link search query
-- [ ] login screen (optional)
 - [ ] LLM Sentiment Analysis
+- [ ] Notifikasi dan Background Processing (optional)
+- [ ] login screen (optional)
 
 
 
