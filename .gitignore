@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+.venv/
+venv/
+*.egg-info/
+.tox/
+.pytest_cache/
+.mypy_cache/
+
+# Logs and temporary files
+*.log
+
+data/*.db
+data/*.log
+database_content.txt
+docs/
+
+# IDEs
+.idea/
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+
+# Generated Protobuf files
+src/scrapqt/services_pb2.py
+src/scrapqt/services_pb2_grpc.py
+
+# Runtime files
+scripts/run_servers_pid.txt

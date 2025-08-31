@@ -1,0 +1,8 @@
+grpcio
+grpcio-tools
+protobuf
+google-generativeai
+python-dotenv
+PyQt5
+matplotlib
+numpy

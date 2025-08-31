@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package scrapqt;
+
+// Represents a single item scraped from an e-commerce website.
+message ScrapedItem {
+    string title = 1;
+    double price = 2;
+    double review_score = 3;
+    int32 review_count = 4;
+    string link = 5;
+    string ecommerce = 6;
+    bool is_used = 7;
+    int32 sentiment_score = 8;
+    string description = 9;
+    int32 query_id = 10; // New field: Link to the query that generated this item
+    string image_url = 11; // New field: URL of the product image
+}
+
+// The request message for the sentiment analysis service.
+message SentimentRequest {
+    string text = 1;
+}
+
+// The response message for the sentiment analysis service.
+message SentimentResponse {
+    int32 score = 1; // 1 (negative) to 10 (positive)
+}
+
+// The request message for saving a query.
+message SaveQueryRequest {
+    string query_text = 1;
+}
+
+// The response message for saving a query.
+message SaveQueryResponse {
+    int32 query_id = 1;
+}
+
+// The request message for linking two queries.
+message LinkQueriesRequest {
+    int32 primary_query_id = 1;
+    int32 linked_query_id = 2;
+    string relationship_type = 3;
+}
+
+// The response message for linking two queries.
+message LinkQueriesResponse {
+    bool success = 1;
+}
+
+// Service for storing scraped data.
+// This service is deprecated and will be removed.
+service Database {
+    // Sends a stream of scraped items to be saved.
+    rpc SaveItems(stream ScrapedItem) returns (SaveStatus);
+    // Saves a query and returns its ID.
+    rpc SaveQuery(SaveQueryRequest) returns (SaveQueryResponse);
+    // Links two queries together.
+    rpc LinkQueries(LinkQueriesRequest) returns (LinkQueriesResponse);
+}
+
+// The response message for the SaveItems RPC.
+message SaveStatus {
+    bool success = 1;
+    int32 items_saved = 2;
+}
+
+// The request message for analyzing sentiment of database entries.
+message AnalyzeDatabaseSentimentRequest {
+    // Add any parameters needed for the analysis, e.g., filters, batch size.
+    // For now, we'll keep it simple.
+}
+
+// The response message for analyzing sentiment of database entries.
+message AnalyzeDatabaseSentimentResponse {
+    int32 items_analyzed = 1;
+    // Add any other relevant response fields.
+}
+
+// The request message for scraping.
+message ScrapeRequest {
+    string query = 1;
+}
+
+// The response message for scraping.
+message ScrapeResponse {
+    bool success = 1;
+    int32 items_scraped = 2;
+}
+
+// Service for scraping e-commerce websites.
+service Scraper {
+    // Initiates a scraping task.
+    rpc Scrape(ScrapeRequest) returns (ScrapeResponse);
+}
+
+// Service for analyzing sentiment of a given text.
+service Sentiment {
+    // Analyzes the sentiment of a text.
+    rpc Analyze(SentimentRequest) returns (SentimentResponse);
+    // Analyzes the sentiment of entries in the database.
+    rpc AnalyzeDatabaseSentiment(AnalyzeDatabaseSentimentRequest) returns (AnalyzeDatabaseSentimentResponse);
+    // Saves a stream of scraped items to the database.
+    rpc SaveItems(stream ScrapedItem) returns (SaveStatus);
+    // Saves a query and returns its ID.
+    rpc SaveQuery(SaveQueryRequest) returns (SaveQueryResponse);
+    // Links two queries together.
+    rpc LinkQueries(LinkQueriesRequest) returns (LinkQueriesResponse);
+}
