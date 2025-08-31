@@ -31,9 +31,7 @@ Thumbs.db
 # Environment variables
 .env
 
-# Generated Protobuf files
-src/scrapqt/services_pb2.py
-src/scrapqt/services_pb2_grpc.py
+
 
 # Runtime files
 scripts/run_servers_pid.txt

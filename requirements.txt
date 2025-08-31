@@ -1,8 +1,39 @@
-grpcio
-grpcio-tools
-protobuf
-google-generativeai
-python-dotenv
-PyQt5
-matplotlib
-numpy
+# Core Framework Dependencies
+PyQt5>=5.15.0
+PyQt5-Qt5>=5.15.0
+PyQt5-sip>=12.0.0
+
+# gRPC and Protocol Buffers
+grpcio>=1.50.0
+grpcio-tools>=1.50.0
+protobuf>=4.20.0
+
+# AI/LLM Services
+google-generativeai>=0.3.0
+
+# Configuration and Environment
+python-dotenv>=1.0.0
+
+# Data Visualization and Analysis
+matplotlib>=3.5.0
+numpy>=1.20.0
+
+# Additional Standard Library Dependencies (built-in, listed for reference)
+# sqlite3 - Database operations (built-in)
+# os, sys - System operations (built-in)
+# hashlib - Hash functions (built-in)
+# datetime - Date/time handling (built-in)
+# typing - Type hints (built-in)
+# urllib.parse - URL parsing (built-in)
+# webbrowser - Web browser control (built-in)
+# subprocess - Process management (built-in)
+# signal - Signal handling (built-in)
+# atexit - Exit handlers (built-in)
+# time - Time functions (built-in)
+
+# Development and Testing (optional)
+# Add these if you want to run tests or development tools:
+# pytest>=7.0.0
+# pytest-qt>=4.0.0
+# flake8>=6.0.0
+# black>=23.0.0
