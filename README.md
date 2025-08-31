@@ -53,10 +53,6 @@ ScrapQT/
 │   ├── scraper/              # Web scraping services and plugins
 │   └── scrapqt/              # Protocol buffer definitions
 │
-├── tests/                    # Test suite and utilities
-│   ├── test_*.py            # Unit and integration tests
-│   └── backup/              # Database backups and test data
-│
 ├── docs/                     # Documentation and guides
 │   └── *.md                 # Project documentation
 │
