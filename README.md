@@ -31,45 +31,145 @@ A comprehensive E-Commerce Web Scraper with advanced UI features, sentiment anal
 
 ```
 ScrapQT/
-├── main.py                     # Main application entry point
-├── product_detail_dialog.py    # Product detail popup dialogs
-├── sentiment_dialog.py         # Sentiment analysis interface
-├── database_manager.py         # Database operations and management
-├── config_manager.py          # Configuration file handling
-├── db_config.py               # Database connection configuration
-├── asset_rc.py                # Qt resource file (auto-generated)
-├── requirements.txt           # Python dependencies
-├── config.ini                # Application configuration
+├── main.py                        # Main application entry point
+├── product_detail_dialog.py       # Product detail popup dialogs  
+├── sentiment_dialog.py            # Sentiment analysis interface
+├── database_manager.py            # Database operations and management
+├── config_manager.py             # Configuration file handling
+├── db_config.py                  # Database connection configuration
+├── asset_rc.py                   # Qt resource file (auto-generated)
+├── requirements.txt              # Python dependencies
+├── pengolahan_data.py            # Data processing utilities
+├── .env                          # Environment variables (API keys)
+├── .gitignore                    # Git ignore patterns
+├── README.md                     # This documentation file
+├── SENTIMENT_ANALYSIS_IMPLEMENTATION.md  # AI implementation details
 │
-├── scripts/                   # Setup and server management scripts
-│   ├── install.py            # Environment setup and dependency installation
-│   ├── run_servers.py        # Start gRPC servers with PID management
-│   ├── stop_servers.py       # Graceful server shutdown
-│   └── stop_servers.ps1      # PowerShell server termination script
+├── scripts/                      # Setup and server management scripts
+│   ├── install.py               # Environment setup and dependency installation
+│   ├── run_servers.py           # Start gRPC servers with PID management
+│   ├── stop_servers.py          # Graceful server shutdown
+│   └── stop_servers.ps1         # PowerShell server termination script
 │
-├── src/                      # Core application services
-│   ├── database/             # Database server implementation
-│   ├── llm/                  # LLM service for sentiment analysis
-│   ├── scraper/              # Web scraping services and plugins
-│   └── scrapqt/              # Protocol buffer definitions
+├── src/                         # Core application services
+│   ├── llm/                     # LLM service for sentiment analysis
+│   │   └── server.py           # Google AI integration server
+│   ├── scraper/                 # Web scraping services and plugins
+│   │   ├── base_scraper.py     # Base scraper interface
+│   │   ├── plugin_loader.py    # Dynamic plugin loading system
+│   │   └── server.py           # Scraping service server
+│   └── scrapqt/                 # Protocol buffer definitions
+│       ├── services.proto      # gRPC service definitions
+│       ├── services_pb2.py     # Generated protobuf classes
+│       └── services_pb2_grpc.py # Generated gRPC client/server code
 │
-├── docs/                     # Documentation and guides
-│   └── *.md                 # Project documentation
+├── assets/                      # UI assets and resources
+│   ├── *.png, *.svg            # Icons and images (logos, buttons, backgrounds)
+│   ├── *.qrc                   # Qt resource collection files
+│   ├── *_rc.py                 # Compiled Qt resource files
+│   └── ui/                     # Qt Designer UI files
+│       ├── *.ui                # UI layout definitions
+│       └── *_ui.py             # Compiled UI Python files
 │
-├── data/                     # Application data and logs
-│   ├── scraped_data.db      # SQLite database
-│   └── *.log                # Server log files
+├── data/                        # Application data and logs (auto-created)
+│   ├── scraped_data.db         # SQLite database (created on first run)
+│   ├── llm_server.log          # LLM service logs
+│   ├── scraper_server.log      # Scraper service logs
+│   └── *.pid                   # Process ID files for server management
 │
-├── plugins/                  # Scraper plugin modules
-│   └── example_scraper.py   # Sample scraper implementation
-│
-├── Asset/                    # UI assets and resources
-│   ├── *.png, *.svg         # Icons and images
-│   └── *.qrc                # Qt resource files
-│
-└── UI/                       # Qt Designer UI files
-    └── *.ui                  # UI layout definitions
+└── .venv/                       # Virtual environment (created by install.py)
+    ├── Scripts/                 # Python executables
+    ├── Lib/                     # Installed packages
+    └── pyvenv.cfg              # Virtual environment configuration
 ```
+
+### 📁 Directory Descriptions
+
+- **Root Level**: Core application files and configuration
+- **scripts/**: Installation and server management automation
+- **src/**: Backend services (LLM, scraping, gRPC definitions)  
+- **assets/**: UI resources, images, and Qt Designer files
+- **data/**: Runtime data, database, logs (created automatically)
+- **.venv/**: Isolated Python environment (created by installer)
+
+## Database Schema
+
+ScrapQT uses SQLite for data storage with a relational schema supporting products, queries, and their relationships.
+
+### 🗄️ **Database Tables**
+
+#### **products** - Core product information
+```sql
+CREATE TABLE products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,                 -- Product name/title
+    price REAL,                          -- Product price (numeric)
+    review_score REAL,                   -- Average review rating (0-5 scale)
+    review_count INTEGER,                -- Total number of reviews
+    link TEXT,                           -- Original product URL
+    ecommerce TEXT,                      -- E-commerce platform name
+    is_used BOOLEAN,                     -- New (0) or Used (1) condition
+    scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Data collection time
+    sentiment_score REAL,                -- AI sentiment analysis (-1 to +1)
+    description TEXT,                    -- Product description
+    query_id INTEGER,                    -- Associated search query ID
+    image_url TEXT,                      -- Product image URL
+    url_hash TEXT UNIQUE                 -- Unique URL identifier (prevents duplicates)
+);
+```
+
+#### **queries** - Search query management
+```sql
+CREATE TABLE queries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    query_text TEXT UNIQUE NOT NULL,     -- Search query string
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  -- Query creation time
+);
+```
+
+#### **product_queries** - Many-to-many relationships
+```sql
+CREATE TABLE product_queries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    product_id INTEGER,                  -- References products.id
+    query_id INTEGER,                    -- References queries.id  
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (product_id) REFERENCES products(id),
+    FOREIGN KEY (query_id) REFERENCES queries(id),
+    UNIQUE(product_id, query_id)         -- Prevents duplicate relationships
+);
+```
+
+#### **query_links** - Query relationship mapping
+```sql
+CREATE TABLE query_links (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    primary_query_id INTEGER,            -- Main query ID
+    linked_query_id INTEGER,             -- Related query ID
+    relationship_type TEXT,              -- Type of relationship
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (primary_query_id) REFERENCES queries(id),
+    FOREIGN KEY (linked_query_id) REFERENCES queries(id)
+);
+```
+
+### 🔍 **Database Indexes** (Performance Optimization)
+- `idx_products_query_id` - Fast query-based product lookups
+- `idx_products_ecommerce` - E-commerce platform filtering  
+- `idx_products_scraped_at` - Time-based data analysis
+
+### 📊 **Data Relationships**
+- **Products ↔ Queries**: Many-to-many via `product_queries` table
+- **Queries ↔ Queries**: Linked relationships via `query_links` table  
+- **Foreign Key Constraints**: Maintain referential integrity
+- **Unique Constraints**: Prevent duplicate products and queries
+
+### 🔧 **Database Features**
+- **Automatic Timestamps**: Track data creation and updates
+- **URL Deduplication**: Prevent scraping same products multiple times
+- **Sentiment Integration**: Store AI analysis results with products
+- **Flexible Querying**: Support complex search and filter operations
+- **Data Integrity**: Foreign key relationships maintain consistency
 
 ## Quick Start
 
@@ -299,38 +399,6 @@ python main.py
 - ✅ UI opens with empty product table
 - ✅ Search functionality ready for use
 - ✅ Clean shutdown when closing application
-
-## Support & Development
-
-### 📚 Documentation
-- **README.md**: This comprehensive guide
-- **docs/**: Additional documentation and guides
-- **Code Comments**: Extensive inline documentation throughout codebase
-
-### 🔧 Development Tools
-- **Test Suite**: Comprehensive tests in `tests/` directory
-- **Server Scripts**: Manual server management in `scripts/`
-- **Database Tools**: Database inspection and management utilities
-
-### 🐛 Issues & Features
-For issues, feature requests, or development questions:
-1. **Check Logs**: Review `data/*.log` files for detailed error information
-2. **Run Tests**: Execute test suite to identify specific problems
-3. **Fresh Install**: Try complete reinstall if issues persist
-4. **Documentation**: Refer to inline code documentation and comments
-
-### 🎯 Project Status
-**ScrapQT** is a complete, production-ready application with:
-- ✅ Full feature implementation
-- ✅ Comprehensive error handling
-- ✅ Automatic server lifecycle management
-- ✅ Professional UI/UX design
-- ✅ Extensive test coverage
-- ✅ Clean project organization
-
----
-
-**ScrapQT** - Making e-commerce data collection and analysis simple and powerful.
 
 
 
