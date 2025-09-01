@@ -4,11 +4,11 @@ A comprehensive E-Commerce Web Scraper with advanced UI features, sentiment anal
 
 ## Anggota
 
-- Mikola Syabila
-- Rafsya Ghaizan Athari
-- Ignatius Cahyo Widhiasto
+- Mikola Syabilae (backend buat scraper, llm, dan database)
+- Rafsya Ghaizan Athari (matplotliob dan numpy untuk bar dan box chart)
+- Ignatius Cahyo Widhiasto (design ui dengan qtdesigner)
 - Rasendriya Arsanta
-- Claude Sonnet 4 dalam Agent Mode
+- Claude Sonnet 4 dalam Agent Mode (literally semua kodenya)
 
 ## Features
 
