@@ -6,7 +6,7 @@ This is a cleaned up and organized version of the main UI components
 """
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QLabel, QVBoxLayout, QCompleter, QListWidget, QListWidgetItem, QMessageBox
+from PyQt5.QtWidgets import QLabel, QVBoxLayout, QCompleter, QListWidget, QListWidgetItem, QMessageBox, QScrollArea
 from PyQt5.QtCore import QTimer, QThread, pyqtSignal, Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest, QNetworkReply
@@ -423,7 +423,7 @@ class Ui_MainWindow(object):
         self.scraping_timer = None  # For scraping animation
         self.scraping_query = ""  # Current scraping query
         self.scraping_dots = 0  # Animation counter
-        self.current_chart_widget = None  # To hold the matplotlib canvas
+        self.chart_scroll_area = None  # To hold the matplotlib canvas
 
     def setupUi(self, MainWindow):
         """Set up the main window UI components"""
@@ -853,8 +853,6 @@ class Ui_MainWindow(object):
         self.grafik_perbandingan_title.setStyleSheet("font: 87 12pt \"Segoe UI Black\";")
         self.grafik_perbandingan_title.setObjectName("grafik_perbandingan_title")
         chart_title_layout.addWidget(self.grafik_perbandingan_title)
-
-        # Putting Dropdown push to the right
         chart_title_layout.addStretch()
 
         # Configuration of the dropdown for selected chart
@@ -884,9 +882,20 @@ class Ui_MainWindow(object):
         self.chart_layout.addLayout(chart_title_layout)
         self.chart_type_dropdown.currentIndexChanged.connect(self._on_chart_type_changed)
 
-        # Comparison chart placeholder
-        self.grafik_perbandingan = QtWidgets.QLabel(self.comparison_chart_container)
-        self.grafik_perbandingan.setStyleSheet("""
+        # Configuration QScrollArea
+        self.chart_scroll_area = QtWidgets.QScrollArea(self.comparison_chart_container)
+        self.chart_scroll_area.setWidgetResizable(False)
+        self.chart_scroll_area.setStyleSheet("""
+            QScrollArea { 
+                border: none; 
+                background-color: white; 
+            }
+        """)
+
+
+        # Initial placeholder display
+        initial_placeholder = QtWidgets.QLabel('Chart will be displayed here', self.chart_scroll_area)
+        initial_placeholder.setStyleSheet("""
             QLabel {
                 border: 1px solid #ddd;
                 border-radius: 8px;
@@ -895,13 +904,10 @@ class Ui_MainWindow(object):
                 font-size: 14px;
             }
         """)
-        self.grafik_perbandingan.setText("Chart will be displayed here")
-        self.grafik_perbandingan.setAlignment(QtCore.Qt.AlignCenter)
-        self.grafik_perbandingan.setScaledContents(False)
-        self.grafik_perbandingan.setObjectName("grafik_perbandingan")
-        self.chart_layout.addWidget(self.grafik_perbandingan, 1)  # Give it stretch factor 1
+        initial_placeholder.setAlignment(QtCore.Qt.AlignCenter)
+        self.chart_scroll_area.setWidget(initial_placeholder)
+        self.chart_layout.addWidget(self.chart_scroll_area, 1)
 
-        self.current_chart_widget = self.grafik_perbandingan
 
         # Add both containers to horizontal splitter (50/50 split, adjustable)
         self.horizontal_splitter.addWidget(self.product_image_container)
@@ -1158,50 +1164,33 @@ class Ui_MainWindow(object):
             else:
                 figure = None
 
-            # Remove the previous widget (placeholder or old chart)
-            if self.current_chart_widget:
-                self.current_chart_widget.deleteLater()
-                self.current_chart_widget = None
-
             if figure:
                 # Create and add the new chart canvas
                 canvas = FigureCanvas(figure)
-                self.chart_layout.addWidget(canvas)
-                self.current_chart_widget = canvas  # Update the tracker
+                self.chart_scroll_area.setWidget(canvas) # Update the tracker
             else:
                 # If no data, show a placeholder message
-                self._set_chart_placeholder("Not enough data to generate a chart.")
+                self._set_chart_placeholder("The data is empty")
 
         except Exception as e:
             print(f"Error generating chart: {e}")
             self._set_chart_placeholder("An error occurred while generating the chart.")
 
-    def _clear_comparison_chart(self, message="Chart will be displayed here"):
-        """Clears the comparison chart area and shows a placeholder message."""
-        self._set_chart_placeholder(message)
-
-    def _set_chart_placeholder(self, message):
+    def _set_chart_placeholder(self, message= 'Chart will be displayed here'):
         '''Removes current chart and then displays a new chart Qlabel'''
-        if self.current_chart_widget:
-            self.current_chart_widget.deleteLater()
-            self.current_chart_widget = None
-
-        #Creating new chart
-        placeholder = QtWidgets.QLabel(self.comparison_chart_container)
+        placeholder = QtWidgets.QLabel(message, self.chart_scroll_area)
         placeholder.setStyleSheet("""
-            QLabel{
-                border: 1px solid #ddd;
-                border-radius: 8px;
-                background-color: #f9f9f9;
-                color: #666;
-                font-size: 14px;
-            }
-        """)
-        placeholder.setText(message)
+                    QLabel {
+                        border: 1px solid #ddd;
+                        border-radius: 8px;
+                        background-color: #f9f9f9;
+                        color: #666;
+                        font-size: 14px;
+                    }
+                """)
         placeholder.setAlignment(QtCore.Qt.AlignCenter)
         placeholder.setWordWrap(True)
-        self.chart_layout.addWidget(placeholder, 1)
-        self.current_chart_widget = placeholder
+        self.chart_scroll_area.setWidget(placeholder)
 
 
     def _handle_manual_refresh(self):
@@ -1222,7 +1211,7 @@ class Ui_MainWindow(object):
             else:
                 # Refresh all products
                 self._load_data_from_database()
-                self._clear_comparison_chart()  # Clear chart
+                self._set_chart_placeholder()  # Clear chart
 
             # Update the image display to reflect the table refresh
             self.gambar_produk.setText("Hover over a product to see its image")
@@ -1331,7 +1320,7 @@ class Ui_MainWindow(object):
         else:
             # Refresh all products
             self._load_data_from_database()
-            self._clear_comparison_chart()  # Clear chart
+            self._set_chart_placeholder()  # Clear chart
 
         # Update the image display to reflect the table refresh
         self.gambar_produk.setText("Hover over a product to see its image")
@@ -1424,10 +1413,10 @@ class Ui_MainWindow(object):
             else:
                 # No products found - prompt user to scrape
                 self._prompt_for_scraping(search_term)
-                self._clear_comparison_chart()  # Clear chart
+                self._set_chart_placeholder()  # Clear chart
         else:
             self._load_data_from_database()
-            self._clear_comparison_chart()  # Clear chart
+            self._set_chart_placeholder()  # Clear chart
 
     def _prompt_for_scraping(self, query):
         """Show popup asking if user wants to scrape for the query"""
@@ -1676,7 +1665,7 @@ class Ui_MainWindow(object):
                     font-style: italic;
                 }
             """)
-            self._clear_comparison_chart()
+            self._set_chart_placeholder()
 
     def closeEvent(self, event):
         """Handle application closing - cleanup background threads"""
@@ -1794,7 +1783,7 @@ class Ui_MainWindow(object):
 
                     # Refresh the UI to show empty state
                     self._load_data_from_database()
-                    self._clear_comparison_chart("Database Cleared")  # Clear chart
+                    self._set_chart_placeholder("Database Cleared")  # Clear chart
 
                     # Reset image display
                     self.gambar_produk.setText("Database cleared!\nAll products have been removed.")

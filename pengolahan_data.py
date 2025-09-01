@@ -81,21 +81,24 @@ class DataSortingScrapper:
         width = 0.25
 
         # Plotting
-        fig, ax = plt.subplots(figsize=[16, 9])
+        width_item = 1.5
+        min_width = 8
+        fig_width = max(min_width,len(e_commerces) * width_item )
+        fig, ax = plt.subplots(figsize=[fig_width, 6])
         ax.bar(x - width, means, width, label='Mean', color='#0059FF')
         ax.bar(x, medians, width, label='Median', color='#FFD400')
         ax.bar(x + width, modes, width, label='Mode', color='#4AD991')
 
         # Tambahkan teks, judul, dan label
         ax.set_ylabel('Harga (Rupiah)', fontsize=12)
-        ax.set_title(f'Perbandingan Statistik Harga untuk "{self.search}"', fontsize=20, **csfont)
+        ax.set_title(f'Perbandingan Statistik Harga untuk "{self.search}"', fontsize=16, **csfont)
         ax.set_xticks(x)
         ax.set_xticklabels(e_commerces, fontsize=12, rotation=45, ha='center')
         ax.legend()
         ax.grid(axis='y', linestyle='--', alpha=0.8)
         ax.set_frame_on(False)
 
-        fig.tight_layout()
+        fig.tight_layout(pad= 2)
         plt.legend()
 
         return fig
@@ -109,7 +112,11 @@ class DataSortingScrapper:
         price_lists = list(price_data.values())
         x = np.arange(len(ecommerces))
 
-        fig, ax = plt.subplots(figsize=[16, 9])
+        #plotting
+        width_item = 1.5
+        min_width = 8
+        fig_width = max(min_width, len(ecommerces) * width_item)
+        fig, ax = plt.subplots(figsize=[fig_width, 6])
         bplot = ax.boxplot(price_lists, positions=x + 0.1, labels=ecommerces, patch_artist=True, vert=True, widths=0.25)
 
         for i, prices in enumerate(price_lists):
@@ -128,7 +135,7 @@ class DataSortingScrapper:
             patch.set_facecolor(color)
             patch.set_alpha(0.7)
 
-        fig.tight_layout()
+        fig.tight_layout(pad= 1.5)
         return fig
 
 if __name__ == '__main__':
