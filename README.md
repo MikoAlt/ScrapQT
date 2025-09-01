@@ -5,6 +5,9 @@ A comprehensive E-Commerce Web Scraper with advanced UI features, sentiment anal
 ## Anggota
 
 - Mikola Syabila
+- Rafsya Ghaizan Athari
+- Ignatius Cahyo Widhiasto
+- Rasendriya Arsanta
 - Claude Sonnet 4 dalam Agent Mode
 
 ## Features
