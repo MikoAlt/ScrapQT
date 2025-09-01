@@ -57,24 +57,21 @@ class TokopediaScraper(BaseScraper):
         return True
     
     def _setup_driver(self):
-        """Setup hidden Chrome browser"""
+        """Setup hidden Chrome browser (invisible but not headless, like the original)"""
         if not self._check_dependencies():
             return None
         
         try:
             options = Options()
-            options.add_argument("--headless")  # Run in headless mode for server environment
-            options.add_argument("--window-position=-2000,-2000")  # Hide window
+            options.add_argument("--window-position=-2000,-2000")  # Hide window off-screen
             options.add_argument("--window-size=1920,1080")
             options.add_argument("--disable-blink-features=AutomationControlled")
-            options.add_argument("--disable-gpu")
-            options.add_argument("--no-sandbox")
-            options.add_argument("--disable-dev-shm-usage")
             options.add_experimental_option("useAutomationExtension", False)
             options.add_experimental_option("excludeSwitches", ["enable-automation"])
             
             service = Service(ChromeDriverManager().install())
             driver = webdriver.Chrome(service=service, options=options)
+            driver.minimize_window()  # Minimize the window to make it invisible
             
             return driver
         except Exception as e:
@@ -315,7 +312,7 @@ class TokopediaScraper(BaseScraper):
                     if price:
                         break
             
-            product_data['price'] = price
+            product_data['price'] = price or 0.0  # Use 0.0 instead of None
             
             # Extract rating and review count
             rating_selectors = [
@@ -353,8 +350,8 @@ class TokopediaScraper(BaseScraper):
                 if review_count:
                     break
             
-            product_data['review_score'] = review_score
-            product_data['review_count'] = review_count
+            product_data['review_score'] = review_score or 0.0  # Use 0.0 instead of None
+            product_data['review_count'] = review_count or 0  # Use 0 instead of None
             
             # Extract description
             desc_selectors = [
@@ -369,7 +366,7 @@ class TokopediaScraper(BaseScraper):
                     description = elements[0].get_text(strip=True)[:500]  # Limit description length
                     break
             
-            product_data['description'] = description
+            product_data['description'] = description or ''  # Use empty string instead of None
             
             # Extract image URL
             img_selectors = [
@@ -384,7 +381,7 @@ class TokopediaScraper(BaseScraper):
                     image_url = elements[0].get('src')
                     break
             
-            product_data['image_url'] = image_url
+            product_data['image_url'] = image_url or ''  # Use empty string instead of None
             
             # Determine if used by checking "Kondisi" field
             is_used = False
