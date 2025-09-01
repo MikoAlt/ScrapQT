@@ -2,6 +2,11 @@
 
 A comprehensive E-Commerce Web Scraper with advanced UI features, sentiment analysis, and automated server management, built with Python and PyQt5.
 
+## Anggota
+
+- Mikola Syabila
+- Claude Sonnet 4 dalam Agent Mode
+
 ## Features
 
 ### ✅ **Completed Features**
