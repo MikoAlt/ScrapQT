@@ -770,7 +770,7 @@ class Ui_MainWindow(object):
         search = self.search_bar.text().strip()
 
         if search:
-            self._update_comparison_chart(search)
+            self._update_comparison_chart()  # Will get products from search automatically
 
     def _setup_product_sections(self):
         """Set up product image and comparison chart sections with 50/50 horizontal split"""
@@ -1150,27 +1150,39 @@ class Ui_MainWindow(object):
         self.search_bar.set_database_manager(self.db_manager)
         self.search_bar.suggestion_selected.connect(self._handle_suggestion_selected)
 
-    def _update_comparison_chart(self, search):
-        """Generate and display the comparison chart for the search term."""
+    def _update_comparison_chart(self, products=None):
+        """Generate and display the comparison chart for the current products."""
         try:
+            # If no products provided, try to get products from table
+            if products is None:
+                # Get current search term if any
+                search_term = self.search_bar.text().strip()
+                if search_term:
+                    products = self.db_manager.search_products(search_term)
+                else:
+                    products = self.db_manager.get_all_products()
 
-            data = DataSortingScrapper(search)
-            chart_type = self.chart_type_dropdown.currentText()
+            # If we have products, create chart data
+            if products and len(products) > 0:
+                data = DataSortingScrapper(products=products)  # Pass products directly
+                chart_type = self.chart_type_dropdown.currentText()
 
-            if chart_type == 'Bar Chart':
-                figure = data.bar_chart()
-            elif chart_type == 'Box Plot':
-                figure = data.box_plot()
+                if chart_type == 'Bar Chart':
+                    figure = data.bar_chart()
+                elif chart_type == 'Box Plot':
+                    figure = data.box_plot()
+                else:
+                    figure = None
+
+                if figure:
+                    # Create and add the new chart canvas
+                    canvas = FigureCanvas(figure)
+                    self.chart_scroll_area.setWidget(canvas) # Update the tracker
+                else:
+                    # If no data, show a placeholder message
+                    self._set_chart_placeholder("No chart data available")
             else:
-                figure = None
-
-            if figure:
-                # Create and add the new chart canvas
-                canvas = FigureCanvas(figure)
-                self.chart_scroll_area.setWidget(canvas) # Update the tracker
-            else:
-                # If no data, show a placeholder message
-                self._set_chart_placeholder("The data is empty")
+                self._set_chart_placeholder("No products available for chart")
 
         except Exception as e:
             print(f"Error generating chart: {e}")
@@ -1206,7 +1218,7 @@ class Ui_MainWindow(object):
                 # Refresh search results
                 products = self.db_manager.search_products(search_term)
                 self._populate_table(products)
-                self._update_comparison_chart(search_term)  # Refresh chart
+                self._update_comparison_chart(products)  # Refresh chart with products
                 print(f"Manual refresh: {len(products)} products found for '{search_term}'")
             else:
                 # Refresh all products
@@ -1315,7 +1327,7 @@ class Ui_MainWindow(object):
             # Refresh search results
             products = self.db_manager.search_products(search_term)
             self._populate_table(products)
-            self._update_comparison_chart(search_term)  # Refresh chart
+            self._update_comparison_chart(products)  # Refresh chart with products
             print(f"Refreshed search results: {len(products)} products found")
         else:
             # Refresh all products
@@ -1391,7 +1403,7 @@ class Ui_MainWindow(object):
 
                 # Found products - display them
                 self._populate_table(products)
-                self._update_comparison_chart(search_term)  # Call to update chart
+                self._update_comparison_chart(products)  # Pass products instead of search term
                 print(f"Search for '{search_term}': Found {len(products)} products in matching queries")
 
                 # Restore splitter sizes to prevent layout changes
@@ -1643,7 +1655,7 @@ class Ui_MainWindow(object):
         products = self.db_manager.search_products(query)
         if len(products) > 0:
             self._populate_table(products)
-            self._update_comparison_chart(query)  # Update chart with new results
+            self._update_comparison_chart(products)  # Update chart with products
             print(f"Refreshed search results: Found {len(products)} products for '{query}'")
 
             # Reset image display
