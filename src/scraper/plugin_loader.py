@@ -64,7 +64,7 @@ def generate_scraped_items(plugins, query, query_id):
                 description=description,
                 query_id=query_id,
                 image_url=item_data.get('image_url', ''),
-                # sentiment_score will be populated later by the LLM service
+                sentiment_score=0,  # Set to 0 explicitly - will be stored as NULL in database for unanalyzed items
             )
 
 def scrape_and_save_linked_queries(primary_query_id, primary_query_text, db_stub, loaded_plugins): # Removed sentiment_stub

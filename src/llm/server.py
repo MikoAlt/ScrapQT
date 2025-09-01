@@ -322,10 +322,13 @@ class SentimentServicer(services_pb2_grpc.SentimentServicer):
                     print(f"Found duplicate URL: {item.link} - linked to query {item.query_id}")
                 else:
                     # New product - insert it
+                    # Convert sentiment_score of 0 to None (NULL in database) for unanalyzed items
+                    sentiment_value = None if item.sentiment_score == 0 else item.sentiment_score
+                    
                     cursor.execute("""
                         INSERT INTO products (title, price, review_score, review_count, link, ecommerce, is_used, sentiment_score, description, query_id, image_url, url_hash)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, (item.title, item.price, item.review_score, item.review_count, item.link, item.ecommerce, item.is_used, item.sentiment_score, item.description, item.query_id, item.image_url, url_hash))
+                    """, (item.title, item.price, item.review_score, item.review_count, item.link, item.ecommerce, item.is_used, sentiment_value, item.description, item.query_id, item.image_url, url_hash))
                     
                     # Get the newly inserted product ID and link to query
                     new_product_id = cursor.lastrowid
